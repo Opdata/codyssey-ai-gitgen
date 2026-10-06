@@ -116,3 +116,33 @@ feat: 계산기 기능 및 설정 파일 추가
 [INFO] safe-mode: 민감정보 2건 마스킹
 ```
 마스킹은 알려진 패턴만 처리하므로 완전하지 않습니다. 키나 개인정보가 담긴 파일은 `.gitignore`로 제외해 애초에 커밋하지 않는 것이 우선입니다.
+
+## 다른 맥에서 테스트하기 (빠른 세팅)
+Python 3.10 이상과 Git이 설치된 맥 기준입니다. 터미널 창 하나에서 순서대로 실행합니다.
+
+**1. API Key 설정** (현재 터미널에서만 유효)
+```bash
+export AI_API_KEY="YOUR_KEY"
+```
+
+**2. 도구 받기 + 테스트용 저장소 만들기** (통째로 붙여넣기)
+```bash
+cd ~ && git clone https://github.com/Opdata/codyssey-ai-gitgen.git 2>/dev/null; cd ~/codyssey-ai-gitgen && git pull -q
+TOOL=~/codyssey-ai-gitgen/main.py
+rm -rf ~/demo-repo && mkdir ~/demo-repo && cd ~/demo-repo && git init -q -b main
+git -c user.name=demo -c user.email=demo@example.com commit -q --allow-empty -m init
+git checkout -q -b feature/calc
+printf 'def add(a, b):\n    return a + b\n\n\ndef div(a, b):\n    if b == 0:\n        raise ValueError("0으로 나눌 수 없음")\n    return a / b\n' > calc.py
+printf 'API_KEY = "my-secret-value-123"\nADMIN_EMAIL = "admin@company.com"\n' > config.py
+git add . && git status --short && python3 --version
+```
+`A  calc.py`, `A  config.py`와 Python 버전이 출력되면 준비 완료입니다. (`config.py`의 키/이메일은 safe-mode 확인용 가짜 값입니다.)
+
+**3. 실행**
+```bash
+python3 $TOOL commit
+python3 $TOOL pr
+python3 $TOOL pr --safe-mode
+(unset AI_API_KEY; python3 $TOOL commit)   # API Key 미설정 상황 확인
+```
+API Key 미설정 확인 시 `env -u AI_API_KEY python3 ...`는 zsh의 `python3` 별칭을 거치지 않아 macOS 기본 Python(3.9)이 실행될 수 있으므로, 위처럼 괄호(서브셸) 안에서 `unset`을 사용합니다.

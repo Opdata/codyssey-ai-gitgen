@@ -4,6 +4,8 @@
 - 사용자 프롬프트: 이번 실행의 컨텍스트(브랜치, 변경 파일 목록, diff)
 """
 
+from __future__ import annotations
+
 COMMIT_SYSTEM = """당신은 Git 커밋 메시지 작성 도우미입니다.
 규칙:
 - 제목은 '<type>: <요약>' 형식이며, type은 feat/fix/docs/refactor/test/chore 중 하나

@@ -1,20 +1,17 @@
 # ai-gitgen — AI 기반 Git 커밋/PR 초안 생성기
 
-> 이 문서는 **항목만** 작성되어 있다. 각 Step 수행 후 `<!-- -->` 안내에 따라 내용을 채운다.
-> 상단 **사용 가이드**는 제출용 README 본문, 하단 **수행 내역**은 수행/재확인 기록이다.
-
----
-
-# Part 1. 사용 가이드
-
-## 소개
-<!-- 도구가 무엇을 하는지 2~3줄 (git status/diff → AI API → 커밋/PR 초안 출력) -->
-
-## 요구 사항
-<!-- Python 버전, Git, 사용 AI API -->
-
 ## 설치 및 실행 방법
-<!-- clone → 디렉토리 이동 → (가상환경) → 실행 명령 -->
+Python 3.10 이상과 Git이 필요합니다. 외부 패키지를 쓰지 않으므로 별도 설치 과정은 없습니다.
+
+```bash
+git clone https://github.com/Opdata/codyssey-ai-gitgen.git
+```
+
+실행은 **커밋/PR 초안을 만들 대상 Git 저장소의 루트 디렉토리**에서 합니다.
+```bash
+cd <대상 저장소 루트>
+python3 <clone 경로>/codyssey-ai-gitgen/main.py commit
+```
 
 ## 환경변수(API Key) 설정 방법
 > 지원 환경: macOS (zsh)
@@ -49,166 +46,73 @@ echo ${AI_API_KEY:+설정됨}   # "설정됨"이 출력되면 성공 (키 값은
 [ERROR] AI_API_KEY 환경변수가 설정되지 않았습니다.
 ```
 
-## 명령어 및 옵션
-<!-- commit / pr 서브커맨드, --model --temperature --max-tokens --safe-mode 표 (기본값 포함) -->
-
 ## 사용 예시
-### 커밋 메시지 생성
-<!-- 실행 명령 -->
-### PR 초안 생성
-<!-- 실행 명령 -->
+대상 저장소 루트에서 실행합니다. (`TOOL` = clone한 `main.py` 경로)
+```bash
+TOOL=<clone 경로>/codyssey-ai-gitgen/main.py
+python3 $TOOL commit                     # 커밋 메시지 생성
+python3 $TOOL pr                         # PR 제목/본문 생성
+python3 $TOOL pr --safe-mode             # 민감정보 마스킹 후 전송
+python3 $TOOL commit --temperature 0     # 파라미터 변경 (--model, --temperature, --max-tokens)
+python3 $TOOL commit --help              # 옵션과 기본값 확인
+```
 
 ## 출력 예시
 ### 커밋 메시지
-<!-- Step 7 시나리오 5 실제 출력 -->
+```
+[INFO] Git status 수집 완료: 2개 파일 변경 감지
+[INFO] Git diff 수집 완료: 22줄
+[INFO] AI API 요청 중... (model=gemini-3.1-flash-lite, temperature=0.2, max_tokens=500)
+[INFO] API 호출 횟수: 1
+[DONE] 커밋 메시지 생성 완료
+
+--- Commit Message ---
+feat: 계산기 기능 및 설정 파일 추가
+
+- calc.py에 덧셈 및 나눗셈 연산 함수 구현
+- config.py에 API 키 및 관리자 이메일 설정 추가
+----------------------------------------
+```
+
 ### PR 제목/본문
-<!-- Step 7 시나리오 6 실제 출력 -->
-### 오류/예외 상황
-<!-- 변경 없음, Key 미설정, 인증 실패 출력 -->
+```
+[INFO] Git status 수집 완료: 2개 파일 변경 감지
+[INFO] Git diff 수집 완료: 22줄
+[INFO] 현재 브랜치: main
+[INFO] AI API 요청 중... (model=gemini-3.1-flash-lite, temperature=0.2, max_tokens=500)
+[INFO] API 호출 횟수: 1
+[DONE] PR 초안 생성 완료
 
-## 출력 형식 규칙
-<!-- 커밋 제목 50자 권장/72자 최대, PR 제목 80자, PR 본문 섹션 규칙, 후처리 방식 -->
+--- PR Title ---
+계산기 기능 구현 및 설정 파일 추가
 
-## 주의사항
-### 민감정보와 safe-mode
-<!-- diff에 포함될 수 있는 민감정보, 마스킹 패턴, 전송 제한(10개 파일/200줄) -->
-### 비용 / 요청 횟수
-<!-- 1회 실행 = API 1회 호출, 권장 사용법 -->
-### 결과 검토
-<!-- 생성 결과는 초안이며 사용자가 검토 후 적용 -->
+--- PR Body ---
+## Why
+- 프로젝트에 필요한 기본 연산 기능과 환경 설정 정보가 필요함
 
-## 프로젝트 구조
-<!-- 파일별 역할 -->
+## What
+- `calc.py` 파일에 덧셈(`add`) 및 나눗셈(`div`) 함수 구현
+- `config.py` 파일에 `API_KEY` 및 `ADMIN_EMAIL` 설정값 추가
 
----
+## How to Test
+- `calc.py`를 임포트하여 `add(1, 2)` 호출 시 3이 반환되는지 확인
+- `div(10, 0)` 호출 시 `ValueError`가 발생하는지 확인
+- `config.py`에서 정의된 변수들이 정상적으로 로드되는지 확인
+----------------------------------------
+```
 
-# Part 2. 수행 내역 및 체크리스트
+## 주의사항: 민감정보와 safe-mode
+`git diff` 내용은 외부 AI API(Gemini)로 전송됩니다. Gemini 무료 티어는 전송된 내용을 Google 제품 개선에 사용할 수 있으므로, diff에 API Key나 개인정보가 섞이지 않도록 주의하세요.
 
-## 체크리스트
+`--safe-mode`를 사용하면 전송 전에 아래 패턴을 마스킹합니다.
 
-### Step 0: 환경 준비
-- [ ] Python 3.10 이상 확인
-- [ ] 프로젝트 디렉토리 생성, `git init`, `.gitignore`
-- [ ] 작업 브랜치 생성
-- [ ] `AI_API_KEY` 환경변수 설정
+| 대상 | 예시 | 변환 결과 |
+|---|---|---|
+| 이름이 붙은 비밀값 (api_key, secret, token, password) | `API_KEY = "abc123"` | `API_KEY = "[MASKED]"` |
+| Google / OpenAI / AWS 키 형식 | `AIza...`, `sk-...`, `AKIA...` | `[MASKED_API_KEY]`, `[MASKED_AWS_KEY]` |
+| 이메일 | `admin@company.com` | `[MASKED_EMAIL]` |
 
-### Step 1: Git 변경 사항 수집
-- [ ] `git status` 결과로 변경 파일 목록 수집
-- [ ] `git diff` 결과로 diff 텍스트 수집
-- [ ] 프로젝트 루트가 아닐 때 에러 처리
-
-### Step 2: AI API 연동
-- [ ] API Key 환경변수에서 읽기 (하드코딩 없음)
-- [ ] Key 미설정 시 안내 메시지
-- [ ] 인증 실패 / 네트워크 오류 시 원인 포함 메시지
-- [ ] 정상 응답 텍스트 추출
-
-### Step 3: 프롬프트 설계
-- [ ] 커밋용 시스템 프롬프트 (형식/길이/본문 규칙)
-- [ ] PR용 시스템 프롬프트 (Why/What/How to Test)
-- [ ] 사용자 프롬프트에 컨텍스트(브랜치, 파일 목록, diff) 포함
-
-### Step 4: 출력 형식 검증 및 후처리
-- [ ] 커밋 제목 50자 권장 / 72자 최대
-- [ ] PR 제목 80자 최대
-- [ ] PR 본문 섹션 헤더 3개 + 각 섹션 불릿 1개 이상
-
-### Step 5: safe-mode
-- [ ] 민감정보 패턴 마스킹
-- [ ] diff 전송 제한 (10개 파일 / 200줄)
-
-### Step 6: CLI
-- [ ] `commit` / `pr` 서브커맨드
-- [ ] `--model` / `--temperature` / `--max-tokens` / `--safe-mode` 옵션 및 기본값
-- [ ] 구분선/헤더로 구획된 출력
-- [ ] 로그에 API 호출 횟수 출력
-
-### Step 7: 통합 테스트
-- [ ] 1. 변경 없음
-- [ ] 2. 하위 폴더 실행
-- [ ] 3. Key 미설정
-- [ ] 4. 인증 실패
-- [ ] 5. 커밋 메시지 생성
-- [ ] 6. PR 초안 생성
-- [ ] 7. safe-mode
-- [ ] 8. 파라미터 비교
-
-### Step 8: GitHub push
-- [ ] 도구로 생성한 메시지로 커밋
-- [ ] GitHub 리포지토리 생성 및 push
-- [ ] 커밋 히스토리 / 브랜치 확인
-
-### Step 9: README 완성
-- [ ] 설치 및 실행 방법
-- [ ] 환경변수 설정 방법
-- [ ] 커밋/PR 명령 사용 예시
-- [ ] 출력 예시
-- [ ] 민감정보 대응 또는 비용/요청 횟수 안내
-- [ ] clone 후 README만 보고 실행 확인
-
----
-
-## 수행 내역
-
-### Step 0: 환경 준비
-**수행 명령**
-<!-- 실행한 명령 -->
-
-**재확인 결과**
-<!-- python3 --version, git branch 출력 -->
-
-### Step 1: Git 변경 사항 수집
-**수행 내용**
-<!-- 작성한 파일/함수 -->
-
-**재확인 결과**
-<!-- plan.md 1-2 확인 명령 출력 -->
-
-### Step 2: AI API 연동
-**수행 내용**
-<!-- 요청 구성(URL/헤더/바디), 응답 처리, 예외 처리 요약 -->
-
-**재확인 결과**
-<!-- Key 미설정 / 401 / 정상 응답 출력 (Key 값은 기록 금지) -->
-
-### Step 3: 프롬프트 설계
-**수행 내용**
-<!-- 설계 의도: 역할, 규칙, 출력 형식 고정, 컨텍스트 -->
-
-**재확인 결과**
-<!-- build_user_prompt 출력 -->
-
-### Step 4: 출력 형식 검증 및 후처리
-**수행 내용**
-<!-- 재생성 대신 후처리를 선택한 이유 -->
-
-**재확인 결과**
-<!-- validate_commit / validate_pr 출력 -->
-
-### Step 5: safe-mode
-**수행 내용**
-<!-- 마스킹 패턴 목록, 전송 제한 기준 -->
-
-**재확인 결과**
-<!-- mask / limit_diff 출력 -->
-
-### Step 6: CLI
-**수행 내용**
-<!-- 서브커맨드, 옵션, 기본값 -->
-
-**재확인 결과**
-<!-- --help 출력, 잘못된 옵션 입력 결과 -->
-
-### Step 7: 통합 테스트
-**시나리오별 결과**
-<!-- 1~8 실행 출력 -->
-
-**파라미터 비교 결과**
-<!-- temperature 0 vs 1, max_tokens 작은 값 결과 비교 및 해석 -->
-
-### Step 8: GitHub push
-**리포지토리 URL**
-<!-- https://github.com/... -->
-
-**재확인 결과**
-<!-- git log --oneline --all, git branch -a 출력 -->
+```
+[INFO] safe-mode: 민감정보 2건 마스킹
+```
+마스킹은 알려진 패턴만 처리하므로 완전하지 않습니다. 키나 개인정보가 담긴 파일은 `.gitignore`로 제외해 애초에 커밋하지 않는 것이 우선입니다.

@@ -1,0 +1,15 @@
+# 가상환경 / 캐시
+.venv/
+__pycache__/
+*.pyc
+
+# 비밀값
+.env
+
+# macOS
+.DS_Store
+
+# 미션 자료 / 작업 문서 (제출물 아님)
+mission.md
+plan.md
+theory.md
